@@ -1,6 +1,4 @@
 /* Biodiversity Ecology - Mark and Recapture Model
- * Written by Sophia Wang
- * 12.22.2024
 */
 
 // CONSTANTS
@@ -28,7 +26,7 @@ const SLIDER_MAX = 200;
 const SLIDER_DEFAULT = 50;
 const SLIDER_MIN = 10;
 
-const TXT_WIDTH = 0.1;
+const TXT_WIDTH = 0.2;
 const TXT_HEIGHT = 0.05;
 const TXT_PAD = 0.015;
 const HEADER_SIZE = 20;
@@ -37,6 +35,29 @@ const LABEL_SIZE = 16;
 const LOWER_SELS = 3 * BTN_HEIGHT + 3 * BTN_PAD;
 const LOWER_TXTS = LOWER_SELS + TXT_PAD + 4 * SEL_HEIGHT + 4 * SEL_PAD;
 const LOWER_BTNS = LOWER_TXTS + 3 * TXT_HEIGHT;
+
+let mouseImg;
+
+class Mouse {
+  // constructor
+  constructor (x, y, marked) {
+    this.x = x;
+    this.y = y;
+    this.marked = marked;
+  }
+  // getters
+  getX () { return this.x; }
+  getY () { return this.y; }
+  getMarked () { return this.marked; }
+  // setters
+  setX (x) { this.x = x; }
+  setY (y) { this.y = y; }
+  setMarked (marked) { this.marked = marked; }
+  // draw
+  drawMouse () {
+    image(mouseImg, 25, 25, 50, 50);
+  }
+}
 
 // BUTTONS
 let btnReset, btnStart, btnOpen, btnMark, btnRelease, btnUnmark;
@@ -55,14 +76,21 @@ let sels = [selTrapSize, selTrappability, selMigration];
 // SLIDERS
 let slidePopulation, slideDuration;
 let population = SLIDER_DEFAULT, duration = SLIDER_DEFAULT;
-let sliderLabels = ['Population', 'Trap Duration'];
+let sliderLabels = ['Initial Population', 'Trap Duration'];
 let sliders = [slidePopulation, slideDuration];
 let sliderVals = [population, duration];
 
 // VARS
-let marked = 0, markedInTraps = 0, totalInTraps = 0;
-let labels = ['Total Marked', 'Total Marked in Traps', 'Total in Traps'];
-let vars = [marked, markedInTraps, totalInTraps];
+let marked = 0, markedInTraps = 0, totalInTraps = 0, currentPopulation = SLIDER_DEFAULT;
+let labels = ['Total Marked', 'Total Marked in Traps', 'Total in Traps', 'Population'];
+let vars = [marked, markedInTraps, totalInTraps, currentPopulation];
+
+let mouse = new Mouse (50, 50);
+
+// preload image
+function preload () {
+   mouseImg = loadImage('https://i.postimg.cc/YCkHmdjF/mouse.png');
+}
 
 // SETUP
 function setup() {
@@ -101,27 +129,29 @@ function setup() {
 	// sliders
 	sliders.forEach((slider, i) => {
 		textSize(LABEL_SIZE);
-		text(sliderLabels[i], W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH + BTN_WIDTH), 
-				 H * (MAIN_HEIGHT_PAD + LOWER_SELS) + (i + 1) * H * SLIDER_HEIGHT + i * H * SLIDER_PAD);
-		text('' + sliderVals[i], W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH + BTN_WIDTH + SLIDER_PAD + SLIDER_WIDTH), 
-				 H * (MAIN_HEIGHT_PAD + LOWER_SELS) + (i + 1) * H * (SLIDER_HEIGHT + SLIDER_PAD) + H * TXT_PAD);
+		text(sliderLabels[i], W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH), 
+				 H * (MAIN_HEIGHT_PAD + LOWER_SELS) + (i + 4) * H * SLIDER_HEIGHT + (i + 4) * H * SLIDER_PAD);
+		text('' + sliderVals[i], W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH + SLIDER_WIDTH * 2), 
+				 H * (MAIN_HEIGHT_PAD + LOWER_SELS) + (i + 4) * H * SLIDER_HEIGHT + (i + 4) * H * SLIDER_PAD);
 		sliders[i] = createSlider(SLIDER_MIN, SLIDER_MAX, SLIDER_DEFAULT, 1);
-		sliders[i].position(W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH + BTN_WIDTH), H * (MAIN_HEIGHT_PAD + LOWER_SELS) + (i + 1) * H * (SLIDER_HEIGHT + SLIDER_PAD))
+		sliders[i].position(W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH), H * (MAIN_HEIGHT_PAD + LOWER_SELS) + (i + 4) * H * SLIDER_HEIGHT + (i + 4) * H * SLIDER_PAD)
 		sliders[i].style('width', SLIDER_WIDTH_S);
 	});
 	
   // info boxes
-	textSize(HEADER_SIZE);
-	text('Traps', W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH), H * (MAIN_HEIGHT_PAD + LOWER_TXTS))
+	textSize(LABEL_SIZE);
   labels.forEach((label, i) => {
-		textSize(LABEL_SIZE);
-    text(label, W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH), H * (MAIN_HEIGHT_PAD + LOWER_TXTS) + (i + 1) * H * TXT_HEIGHT);
-    text(vars[i], W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH + TXT_WIDTH), H * (MAIN_HEIGHT_PAD + LOWER_TXTS) + (i + 1) * H * TXT_HEIGHT);
+    text(label, W * (MAIN_WIDTH_PAD * 2),  H * (MAIN_HEIGHT_PAD * 2 + i * TXT_HEIGHT));
+    text(vars[i], W * (MAIN_WIDTH_PAD * 2 + TXT_WIDTH), H * (MAIN_HEIGHT_PAD * 2 + i * TXT_HEIGHT));
   });
+  
+ 
+  
+  mouse.drawMouse();
 }
 
 function draw() {
-	repaint();
+	//repaint();
 }
 
 function repaint() {
@@ -144,13 +174,16 @@ function repaint() {
 	// sliders
 	population = slidePopulation.value();
 	duration = slideDuration.value();
-	sliderLabels.forEach((slider, i) => {
+  
+  sliders.forEach((slider, i) => {
 		textSize(LABEL_SIZE);
-		text(slider, W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH + BTN_WIDTH), 
+		text(sliderLabels[i], W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH + BTN_WIDTH), 
 				 H * (MAIN_HEIGHT_PAD + LOWER_SELS) + (i + 1) * H * SLIDER_HEIGHT + i * H * SLIDER_PAD);
 		text('' + sliderVals[i], W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH + BTN_WIDTH + SLIDER_PAD + SLIDER_WIDTH), 
 				 H * (MAIN_HEIGHT_PAD + LOWER_SELS) + (i + 1) * H * (SLIDER_HEIGHT + SLIDER_PAD) + H * TXT_PAD);
-		});
+		sliders[i].position(W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH + BTN_WIDTH), H * (MAIN_HEIGHT_PAD + LOWER_SELS) + (i + 1) * H * (SLIDER_HEIGHT + SLIDER_PAD))
+		sliders[i].style('width', SLIDER_WIDTH_S);
+	});
 	
   // info boxes
 	textSize(HEADER_SIZE);
