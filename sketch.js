@@ -74,8 +74,8 @@ let selOptions = [['Small', 'Medium', 'Large'], ['Neutral', 'Trap shy', 'Trap ha
 let sels = [selTrapSize, selTrappability, selMigration];
 
 // SLIDERS
-let slidePopulation, slideDuration;
-let population = SLIDER_DEFAULT, duration = SLIDER_DEFAULT;
+var slidePopulation, slideDuration;
+let population, duration;
 let sliderLabels = ['Initial Population', 'Trap Duration'];
 let sliders = [slidePopulation, slideDuration];
 let sliderVals = [population, duration];
@@ -90,6 +90,8 @@ let mouse = new Mouse (50, 50);
 // preload image
 function preload () {
    mouseImg = loadImage('https://i.postimg.cc/YCkHmdjF/mouse.png');
+  // this image does not appear on chromebooks. need to think of an alternative hosting method
+  // google drive does not work
 }
 
 // SETUP
@@ -130,13 +132,16 @@ function setup() {
 	sliders.forEach((slider, i) => {
 		textSize(LABEL_SIZE);
 		text(sliderLabels[i], W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH), 
-				 H * (MAIN_HEIGHT_PAD + LOWER_SELS) + (i + 4) * H * SLIDER_HEIGHT + (i + 4) * H * SLIDER_PAD);
+				 H * (MAIN_HEIGHT_PAD + LOWER_SELS) + (i + 4) * H * SLIDER_HEIGHT + (i + 3.5) * H * SLIDER_PAD);
 		text('' + sliderVals[i], W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH + SLIDER_WIDTH * 2), 
-				 H * (MAIN_HEIGHT_PAD + LOWER_SELS) + (i + 4) * H * SLIDER_HEIGHT + (i + 4) * H * SLIDER_PAD);
-		sliders[i] = createSlider(SLIDER_MIN, SLIDER_MAX, SLIDER_DEFAULT, 1);
-		sliders[i].position(W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH), H * (MAIN_HEIGHT_PAD + LOWER_SELS) + (i + 4) * H * SLIDER_HEIGHT + (i + 4) * H * SLIDER_PAD)
-		sliders[i].style('width', SLIDER_WIDTH_S);
+				 H * (MAIN_HEIGHT_PAD + LOWER_SELS) + (i + 4) * H * SLIDER_HEIGHT + (i + 3.5) * H * SLIDER_PAD);
 	});
+  slidePopulation = createSlider(10, 200);
+  slidePopulation.position(W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH), H * (MAIN_HEIGHT_PAD + LOWER_SELS) + 4 * H * (SLIDER_HEIGHT + SLIDER_PAD));
+  slidePopulation.style('width', SLIDER_WIDTH_S);
+  slideDuration = createSlider(10, 200);
+  slideDuration.position(W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH), H * (MAIN_HEIGHT_PAD + LOWER_SELS) + 5 * H * SLIDER_HEIGHT + 5 * H * SLIDER_PAD);
+  slideDuration.style('width', SLIDER_WIDTH_S);
 	
   // info boxes
 	textSize(LABEL_SIZE);
@@ -151,7 +156,7 @@ function setup() {
 }
 
 function draw() {
-	//repaint();
+	repaint();
 }
 
 function repaint() {
@@ -177,20 +182,20 @@ function repaint() {
   
   sliders.forEach((slider, i) => {
 		textSize(LABEL_SIZE);
-		text(sliderLabels[i], W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH + BTN_WIDTH), 
-				 H * (MAIN_HEIGHT_PAD + LOWER_SELS) + (i + 1) * H * SLIDER_HEIGHT + i * H * SLIDER_PAD);
-		text('' + sliderVals[i], W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH + BTN_WIDTH + SLIDER_PAD + SLIDER_WIDTH), 
-				 H * (MAIN_HEIGHT_PAD + LOWER_SELS) + (i + 1) * H * (SLIDER_HEIGHT + SLIDER_PAD) + H * TXT_PAD);
-		sliders[i].position(W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH + BTN_WIDTH), H * (MAIN_HEIGHT_PAD + LOWER_SELS) + (i + 1) * H * (SLIDER_HEIGHT + SLIDER_PAD))
-		sliders[i].style('width', SLIDER_WIDTH_S);
+		text(sliderLabels[i], W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH), 
+				 H * (MAIN_HEIGHT_PAD + LOWER_SELS) + (i + 4) * H * SLIDER_HEIGHT + (i + 3.5) * H * SLIDER_PAD);
+    // BUGGY
+		text('' + sliderVals[i], W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH + SLIDER_WIDTH * 2), 
+				 H * (MAIN_HEIGHT_PAD + LOWER_SELS) + (i + 4) * H * SLIDER_HEIGHT + (i + 3.5) * H * SLIDER_PAD);
 	});
 	
   // info boxes
 	textSize(HEADER_SIZE);
-	text('Traps', W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH), H * (MAIN_HEIGHT_PAD + LOWER_TXTS))
+	text('Traps', W * (MAIN_WIDTH_PAD * 2), H * (MAIN_HEIGHT_PAD * 2.5))
+   // info boxes
+	textSize(LABEL_SIZE);
   labels.forEach((label, i) => {
-		textSize(LABEL_SIZE);
-    text(label, W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH), H * (MAIN_HEIGHT_PAD + LOWER_TXTS) + (i + 1) * H * TXT_HEIGHT);
-    text(vars[i], W * (MAIN_WIDTH_PAD * 2 + MAIN_WIDTH + TXT_WIDTH), H * (MAIN_HEIGHT_PAD + LOWER_TXTS) + (i + 1) * H * TXT_HEIGHT);
+    text(label, W * (MAIN_WIDTH_PAD * 2),  H * (MAIN_HEIGHT_PAD * 4 + i * TXT_HEIGHT));
+    text(vars[i], W * (MAIN_WIDTH_PAD * 2 + TXT_WIDTH), H * (MAIN_HEIGHT_PAD * 4 + i * TXT_HEIGHT));
   });
 }
